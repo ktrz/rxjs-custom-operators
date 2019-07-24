@@ -1,31 +1,69 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
+import {from, interval, merge, Subject} from 'rxjs';
+import {map, scan, share, takeUntil, tap} from 'rxjs/operators';
+import {bufferDelay, customMap1, customMap2, switchCase} from './operators';
 
 @Component({
   selector: 'app-root',
   template: `
-    <!--The content below is only a placeholder and can be replaced.-->
-    <div style="text-align:center">
-      <h1>
-        Welcome to {{title}}!
-      </h1>
-      <img width="300" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
-    </div>
-    <h2>Here are some links to help you start: </h2>
-    <ul>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/cli">CLI Documentation</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-      </li>
-    </ul>
-    
+    <button (click)="clicks.next($event)">Click</button>
+    <button (click)="clicks2.next(+numberInput.value)">Click2</button>
+    <button (click)="end.next()">End</button>
+    <input #numberInput type="number">
+
+
+    <div>{{result$ | async | json}}</div>
+    <div>Test: {{test$ | async}}</div>
+    <div>Test2: {{test2$ | async}}</div>
   `,
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'rxjs-custom-operators';
+  source$ = from([1, 2, 3, 4]).pipe(share());
+  clicks = new Subject();
+  clicks2 = new Subject<number>();
+  end = new Subject();
+  timer$ = interval(1000);
+
+  test$ = this.clicks.asObservable().pipe(
+    scan((acc) => acc + 1, 0),
+    bufferDelay(1000)
+    // switchMap(() => this.timer$)
+  );
+  test2$ = this.clicks2.asObservable().pipe(
+    switchCase((() => {
+      const values = {};
+      return v => {
+        const select = values[v] || interval(v).pipe(tap(console.log.bind(console, `interval (${v}):`)));
+        values[v] = select;
+        return select;
+      };
+    })()),
+    takeUntil(this.end),
+  );
+
+  result0$ = this.source$.pipe(
+    map(x => x * 2),
+  );
+
+  result1$ = this.source$.pipe(
+    customMap1(x => x * 2),
+  );
+
+  result2$ = this.source$.pipe(
+    customMap2(x => x * 2),
+  );
+
+  result$ = merge(
+    this.result0$.pipe(map(res0 => ({res0}))),
+    this.result1$.pipe(map(res1 => ({res1}))),
+    this.result2$.pipe(map(res2 => ({res2}))),
+  ).pipe(
+    scan((acc, v) => {
+      return Object.keys({...acc, ...v}).reduce((vals, key) => ({
+        ...vals,
+        [key]: (acc[key] ? [...acc[key], v[key]] : [v[key]]).filter(x => !!x),
+      }), {});
+    }, {}),
+  );
 }
