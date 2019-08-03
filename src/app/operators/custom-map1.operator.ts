@@ -1,8 +1,10 @@
 import {Observable} from 'rxjs';
 
-export const customMap1 = <T, R>(project: (value: T) => R) => (source: Observable<T>) =>
-  new Observable<R>(observer => {
-    return source.subscribe({
+export const customMap1 = <T, R>(
+  project: (value: T) => R) => (source: Observable<T>
+) =>
+  new Observable<R>(observer =>
+    source.subscribe({
       next(x) {
         observer.next(
           project(x)
@@ -14,5 +16,5 @@ export const customMap1 = <T, R>(project: (value: T) => R) => (source: Observabl
       complete() {
         observer.complete();
       }
-    });
-  });
+    })
+  )

@@ -1,69 +1,86 @@
 import {Component} from '@angular/core';
-import {from, interval, merge, Subject} from 'rxjs';
-import {map, scan, share, takeUntil, tap} from 'rxjs/operators';
-import {bufferDelay, customMap1, customMap2, switchCase} from './operators';
+import {Observable, Subject} from 'rxjs';
+import {map, scan} from 'rxjs/operators';
+import {bufferDelay} from './operators';
+import {bufferDelay as bd1} from './operators/buffer-delay1.operator';
+import {bufferDelay as bd2} from './operators/buffer-delay2.operator';
+
+const sourceToResult = (source: Observable<any>) => source.pipe(
+  scan((acc) => acc + 1, 0),
+  scan((acc, v: number) => [...acc, v], []),
+  map(arr => arr.join(', '))
+);
+
 
 @Component({
   selector: 'app-root',
   template: `
-    <button (click)="clicks.next($event)">Click</button>
-    <button (click)="clicks2.next(+numberInput.value)">Click2</button>
-    <button (click)="end.next()">End</button>
-    <input #numberInput type="number">
-
-
-    <div>{{result$ | async | json}}</div>
-    <div>Test: {{test$ | async}}</div>
-    <div>Test2: {{test2$ | async}}</div>
+    <mat-card>
+      <mat-card-content>
+        <div class="content content-title">
+          <div class="column">Source</div>
+          <div class="column">Result</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card>
+      <mat-card-content>
+        <div class="content">
+          <div class="column">{{source1$ | async }}</div>
+          <div class="column">{{result1$ | async}}</div>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="clicks1.next($event)">Click</button>
+      </mat-card-actions>
+    </mat-card>
+    <mat-card>
+      <mat-card-content>
+        <div class="content">
+          <div class="column">{{source2$ | async }}</div>
+          <div class="column">{{result2$ | async}}</div>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="clicks2.next($event)">Click</button>
+      </mat-card-actions>
+    </mat-card>
+    <mat-card>
+      <mat-card-content>
+        <div class="content">
+          <div class="column">{{source3$ | async }}</div>
+          <div class="column">{{result3$ | async}}</div>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="clicks3.next($event)">Click</button>
+      </mat-card-actions>
+    </mat-card>
   `,
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  source$ = from([1, 2, 3, 4]).pipe(share());
-  clicks = new Subject();
-  clicks2 = new Subject<number>();
-  end = new Subject();
-  timer$ = interval(1000);
+  clicks1 = new Subject();
+  clicks2 = new Subject();
+  clicks3 = new Subject();
 
-  test$ = this.clicks.asObservable().pipe(
-    scan((acc) => acc + 1, 0),
+  source1$ = this.clicks1.asObservable().pipe(
+    sourceToResult
+  );
+  source2$ = this.clicks2.asObservable().pipe(
+    sourceToResult
+  );
+  source3$ = this.clicks3.asObservable().pipe(
+    sourceToResult
+  );
+
+  result1$ = this.source1$.pipe(
     bufferDelay(1000)
-    // switchMap(() => this.timer$)
   );
-  test2$ = this.clicks2.asObservable().pipe(
-    switchCase((() => {
-      const values = {};
-      return v => {
-        const select = values[v] || interval(v).pipe(tap(console.log.bind(console, `interval (${v}):`)));
-        values[v] = select;
-        return select;
-      };
-    })()),
-    takeUntil(this.end),
+  result2$ = this.source2$.pipe(
+    bd1(1000)
   );
-
-  result0$ = this.source$.pipe(
-    map(x => x * 2),
-  );
-
-  result1$ = this.source$.pipe(
-    customMap1(x => x * 2),
-  );
-
-  result2$ = this.source$.pipe(
-    customMap2(x => x * 2),
-  );
-
-  result$ = merge(
-    this.result0$.pipe(map(res0 => ({res0}))),
-    this.result1$.pipe(map(res1 => ({res1}))),
-    this.result2$.pipe(map(res2 => ({res2}))),
-  ).pipe(
-    scan((acc, v) => {
-      return Object.keys({...acc, ...v}).reduce((vals, key) => ({
-        ...vals,
-        [key]: (acc[key] ? [...acc[key], v[key]] : [v[key]]).filter(x => !!x),
-      }), {});
-    }, {}),
+  result3$ = this.source3$.pipe(
+    bd2(1000)
   );
 }
