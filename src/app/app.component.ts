@@ -6,7 +6,7 @@ import {bufferDelayClass, bufferDelayFunc, customMapClass, customMapFunc} from '
   selector: 'app-root',
   template: `
     <app-operator-showcase-header></app-operator-showcase-header>
-    <app-operator-showcase *ngFor="let showcase of operatorsShowcases" [operators]="showcase"></app-operator-showcase>
+    <app-operator-showcase-content *ngFor="let showcase of operatorsShowcases" [operators]="showcase"></app-operator-showcase-content>
   `,
   styleUrls: ['./app.component.scss']
 })
