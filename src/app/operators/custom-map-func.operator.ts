@@ -1,6 +1,6 @@
 import {Observable} from 'rxjs';
 
-export const customMap1 = <T, R>(
+export const customMapFunc = <T, R>(
   project: (value: T) => R) => (source: Observable<T>
 ) =>
   new Observable<R>(observer =>
@@ -17,4 +17,4 @@ export const customMap1 = <T, R>(
         observer.complete();
       }
     })
-  )
+  );

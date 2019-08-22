@@ -1,6 +1,6 @@
 import {Observable, Operator, OperatorFunction, Subscriber, TeardownLogic} from 'rxjs';
 
-export const customMap2 = <T, R>(
+export const customMapClass = <T, R>(
   project: (value: T) => R
 ): OperatorFunction<T, R> =>
   (source: Observable<T>): Observable<R> => {
@@ -11,7 +11,8 @@ export const customMap2 = <T, R>(
 
 class CustomMapOperator<T, R> implements Operator<T, R> {
 
-  constructor(private project: (value: T) => R) {}
+  constructor(private project: (value: T) => R) {
+  }
 
   call(subscriber: Subscriber<R>, source: any): TeardownLogic {
     return source.subscribe(

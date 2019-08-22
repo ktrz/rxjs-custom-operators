@@ -2,31 +2,10 @@ import {BehaviorSubject, MonoTypeOperatorFunction, Observable, Operator, Subject
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
 import {notNull} from './not-null.operator';
 
-export const bufferDelay = <T>(time: number): MonoTypeOperatorFunction<T> => (source: Observable<T>): Observable<T> => {
-  return new Observable<T>(observer => {
-    const ready = new BehaviorSubject<boolean>(true);
-    const isReady$ = ready.asObservable().pipe(filter(v => v));
-
-    zip(source, isReady$)
-      .pipe(
-        tap(() => {
-          ready.next(false);
-          setTimeout(() => ready.next(true), time);
-        }),
-        map(([v]) => v),
-      )
-      .subscribe({
-        next: (x) => {
-          observer.next(x);
-        },
-        error: (err) => {
-          observer.error(err);
-        },
-        complete: () => {
-          observer.complete();
-        }
-      });
-  });
+export const bufferDelayClass = <T>(time: number): MonoTypeOperatorFunction<T> => (source: Observable<T>): Observable<T> => {
+  return source.lift(
+    new BufferDelayOperator<T>(time)
+  );
 };
 
 class BufferDelayOperator<T> implements Operator<T, T> {
