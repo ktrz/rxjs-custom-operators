@@ -5,8 +5,10 @@
 
 .content {
   display: flex;
-  min-height: 100px;
+  height: 200px;
   font-size: 3rem;
+  overflow: hidden;
+  align-items: flex-end;
 
   .column {
     display: flex;
@@ -15,14 +17,17 @@
     align-items: center;
 
     &.header {
-      flex: 0 0 10%;
+      flex: 0 0 200px;
       justify-content: center;
+      border-right: 1px solid;
     }
   }
-}
 
-.content-title {
-  .column {
-    justify-content: center;
+  &.content-title {
+    height: 100px;
+
+    .column {
+      justify-content: center;
+    }
   }
 }
