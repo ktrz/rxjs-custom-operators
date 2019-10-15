@@ -10,7 +10,7 @@ const sourceToResult = (source: Observable<any>) => source.pipe(
 @Component({
   selector: 'app-operator-showcase-content',
   template: `
-    <app-operator-showcase [source]="sourceCombined$ | async" [destination]="result$ | async">
+    <app-operator-showcase [header]="header" [source]="sourceCombined$ | async" [destination]="result$ | async">
       <button mat-raised-button color="primary" (click)="clicks.next($event)">Click</button>
     </app-operator-showcase>
   `,
@@ -20,12 +20,13 @@ export class OperatorShowcaseContentComponent {
   private clicks = new Subject();
 
   private source$ = this.clicks.asObservable().pipe(scan((acc) => acc + 1, 0));
-  private sourceCombined$ = this.source$.pipe(sourceToResult);
-  private result$ = this.operatorsSubject.asObservable().pipe(
+  sourceCombined$ = this.source$.pipe(sourceToResult);
+  result$ = this.operatorsSubject.asObservable().pipe(
     // @ts-ignore
     switchMap(operators => this.source$.pipe(...operators, sourceToResult))
   );
 
+  @Input() header: string;
   @Input() set operators(operators: OperatorFunction<any, any>[]) {
     this.operatorsSubject.next(operators);
   }
