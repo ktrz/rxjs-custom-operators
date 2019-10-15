@@ -1,6 +1,5 @@
 import {Component} from '@angular/core';
 import {OperatorFunction} from 'rxjs';
-import {customMapClass, customMapFunc} from './operators';
 import {bufferDelayClass, bufferDelayFunc} from './operators/sandbox';
 
 @Component({
@@ -17,8 +16,6 @@ import {bufferDelayClass, bufferDelayFunc} from './operators/sandbox';
 })
 export class AppComponent {
   operatorsShowcases: { header: string, operators: OperatorFunction<any, any>[] }[] = [
-    {header: 'Custom Map 1 (f-${x})', operators: [customMapFunc(s => `f-${s}`)]},
-    {header: 'Custom Map 2 (c-${x})', operators: [customMapClass(s => `c-${s}`)]},
     {header: 'Buffer Delay Func', operators: [bufferDelayFunc(1000)]},
     {header: 'Buffer Delay Class', operators: [bufferDelayClass(1000)]},
   ];
